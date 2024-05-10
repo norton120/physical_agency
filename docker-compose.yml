@@ -1,0 +1,22 @@
+services:
+  app:
+    image: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./app:/src/app
+  #langfuse:
+    #image: langfuse/langfuse:2
+    #environment:
+      #- DATABASE_URL=postgres://postgres:password@db:5432/db
+  webserver:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app
