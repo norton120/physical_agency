@@ -4,3 +4,4 @@ openai
 #together
 pydantic
 pydantic-settings
+langfuse
