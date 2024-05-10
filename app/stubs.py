@@ -15,7 +15,7 @@ conscious_tools = [sleep,
     "type": "function",
     "function": {
       "name": "message_user",
-      "description": "Send a message to the user. This is the only way a to communicate with the user. Remember to stick to the provided personality.",
+      "description": "Send a message to the user. This is the only way a to communicate with the user.",
       "parameters": {
         "type": "object",
         "properties": {

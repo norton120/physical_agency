@@ -35,13 +35,13 @@ class Agent:
                          ToolCallResponseMessage(role="assistant", tool_calls=[
                                 {"id": "call_04wx09n6j51jmvmh09ugy182",
                                 "name": "message_user",
-                                "arguments": '{"content": "What do you want, human?"}'
+                                "arguments": '{"content": "Hello, I am your assistant how can I help you today?"}'
                                 }
 
                          ]),
                          Message(role="tool", content="Message successfully sent to user.", tool_call_id="call_04wx09n6j51jmvmh09ugy182"),
                          Message(role="user", name="Ethan Knox", content="My name is Ethan Knox."),
-                  #       Message(role="user", name="Ethan Knox", content="I have no idea how to sail a sailboat."),
+                         Message(role="user", name="Ethan Knox", content="I have no idea how to sail a sailboat."),
                          Message(role="user", name="Ethan Knox", content="how do you feel about day drinking?"),
 
                          ]
@@ -60,11 +60,11 @@ class Agent:
                 if messages:
                     _ = [self.enqueue_assistant_message(message) for message in messages]
                 if awake := self.heartbeats[thought_process] == preprocessed_heartbeat:
-                    self.logger.debug("Updating hearbeat by default interval.")
+                    self.logger.info("Updating hearbeat by default interval.")
                     self.heartbeats[thought_process] = datetime.now() + timedelta(seconds=self.heartbeat_interval)
                 # if conscious heartbeat is awake, we need to kickstart the autonomic heartbeat if it's asleep
                 if thought_process == "conscious" and awake and self.heartbeats["autonomic"] < self.heartbeats["conscious"]:
-                    self.logger.debug("Agent is awake but autonomic functions are asleep. Difibrillating.")
+                    self.logger.info("Agent is awake but autonomic functions are asleep. Difibrillating.")
                     self.heartbeats["autonomic"] = datetime.now()
 
     @observe()
@@ -78,10 +78,13 @@ class Agent:
             case "autonomic":
                 target = self.autonomic_system
         messages = [message.model_dump(exclude_none=True) for message in target] + [message.model_dump(exclude_none=True) for message in self.messages]
+        tools = autonomic_tools if thought_process == "autonomic" else conscious_tools
+        langfuse_context.update_current_trace(metadata={"tools": tools})
         langfuse_context.update_current_observation(
             name = thought_process,
             input = messages,
             start_time=datetime.now(),
+
         )
         langfuse_context.flush()
         response = self.llm.chat.completions.create(
@@ -89,8 +92,8 @@ class Agent:
            #model="mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages=messages,
             tool_choice="auto",
-            tools=autonomic_tools if thought_process == "autonomic" else conscious_tools,
-            frequency_penalty=0.4,
+            tools=tools,
+            #frequency_penalty=0.4,
         )
         messages, tool_calls = [], []
         for choice in response.choices:
@@ -109,18 +112,18 @@ class Agent:
 
     def execute_tool_call(self, tool_call, thought_process: Literal["conscious", "autonomic"]):
         # TODO: first need to add the function request message to self.messages
-        self.logger.debug(f"Executing tool call: {tool_call}")
+        self.logger.info(f"Executing tool call: {tool_call.function.name}")
         self.messages.append(Message(role="assistant", content=f"Execute tool call: {tool_call.model_dump_json(exclude_none=True)}"))
         arguments = json.loads(tool_call.function.arguments or "{}")
         if tool_call.function.name == "message_user":
-            self.logger.debug(f"Sending message to user: {arguments['content']}")
+            self.logger.info(f"Sending message to user: {arguments['content']}")
             # TODO: then add the tool response to self.messages
             self.messages.append(Message(role="tool",
                                          tool_call_id=tool_call.id,
                                          content="Message successfully sent to user."))
 
         if tool_call.function.name == "remember_about_user":
-            self.logger.debug("Remembering: %s", arguments)
+            self.logger.info("Remembering: %s", arguments)
             self.messages.append(Message(role="tool",
                                          tool_call_id=tool_call.id,
                                          content=f"Information '{arguments['information']}' about '{arguments['user_name']}' successfully remembered."))
@@ -129,7 +132,7 @@ class Agent:
             self.pause_heartbeat(thought_process, id_=tool_call.id)
 
     def pause_heartbeat(self, thought_process: Literal["conscious", "autonomic"], id_:Optional[str] = None):
-            self.logger.debug("Pausing %s heartbeat", thought_process)
+            self.logger.info("Pausing %s heartbeat", thought_process)
             new_heartbeat = datetime.now() + timedelta(days=365)
             self.heartbeats[thought_process] = new_heartbeat
             if thought_process == "conscious":
