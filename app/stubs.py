@@ -21,7 +21,7 @@ conscious_tools = [sleep,
         "properties": {
           "content": {
             "type": "string",
-            "description": "The message to be sent to the user."
+            "description": "The message to be sent to the user. Must match the personality given to the assistant.",
           }
         }
       }

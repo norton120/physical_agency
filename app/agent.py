@@ -35,14 +35,14 @@ class Agent:
                          ToolCallResponseMessage(role="assistant", tool_calls=[
                                 {"id": "call_04wx09n6j51jmvmh09ugy182",
                                 "name": "message_user",
-                                "arguments": '{"content": "Hello, I am your assistant how can I help you today?"}'
+                                "arguments": '{"content": "What doth thou wish to know, Ethan Knox?"}'
                                 }
 
                          ]),
                          Message(role="tool", content="Message successfully sent to user.", tool_call_id="call_04wx09n6j51jmvmh09ugy182"),
                          Message(role="user", name="Ethan Knox", content="My name is Ethan Knox."),
                          Message(role="user", name="Ethan Knox", content="I have no idea how to sail a sailboat."),
-                         Message(role="user", name="Ethan Knox", content="how do you feel about day drinking?"),
+                         #Message(role="user", name="Ethan Knox", content="how do you feel about day drinking?"),
 
                          ]
 

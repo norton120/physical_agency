@@ -3,7 +3,7 @@ services:
     image: app
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfiles/app.Dockerfile
     env_file:
       - .env
     volumes:
@@ -34,3 +34,13 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - app
+  #local_inference:
+    #image: app
+    #build:
+      #context: .
+      #dockerfile: Dockerfile
+    #env_file:
+      #- .env
+    #volumes:
+      #- ./app:/src/app
+    #command: python3 -m app.inference
